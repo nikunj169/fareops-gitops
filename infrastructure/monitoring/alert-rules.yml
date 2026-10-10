@@ -1,0 +1,19 @@
+groups:
+  - name: fareops
+    rules:
+      - alert: FareModelDrift
+        expr: max by (feature) (fare_api_feature_psi) > 0.2
+        for: 3m
+        labels:
+          severity: retrain
+        annotations:
+          summary: "PSI for {{ $labels.feature }} above 0.2 for 3 minutes"
+      - alert: FareApiHighErrorRate
+        expr: >
+          sum(rate(fare_api_requests_total{status=~"5.."}[5m]))
+          / sum(rate(fare_api_requests_total[5m])) > 0.05
+        for: 2m
+        labels:
+          severity: page
+        annotations:
+          summary: "More than 5% of fare-api requests failing"

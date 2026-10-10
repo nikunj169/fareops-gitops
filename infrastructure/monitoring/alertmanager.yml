@@ -1,0 +1,15 @@
+route:
+  receiver: "null"
+  group_by: [alertname]
+  group_wait: 10s
+  group_interval: 1m
+  repeat_interval: 30m
+  routes:
+    - matchers: ['alertname="FareModelDrift"']
+      receiver: loop-controller
+receivers:
+  - name: "null"
+  - name: loop-controller
+    webhook_configs:
+      - url: http://loop-controller.fareops.svc.cluster.local:8000/alert
+        send_resolved: false
