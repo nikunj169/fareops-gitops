@@ -25,6 +25,9 @@ spec:
             - --artifacts-destination=/mlflow/artifacts
             - --serve-artifacts
             - --allowed-hosts=mlflow.fareops.svc.cluster.local:5000,mlflow.fareops.svc.cluster.local,mlflow:5000,localhost:5000,localhost,127.0.0.1:5000
+          env:
+            - {name: MLFLOW_SERVER_ENABLE_JOB_EXECUTION, value: "false"}
+            - {name: MLFLOW_SERVER_JOB_ENABLE_PERIODIC_TASKS, value: "false"}
           ports:
             - containerPort: 5000
           readinessProbe:
