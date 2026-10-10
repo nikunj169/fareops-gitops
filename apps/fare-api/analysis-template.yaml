@@ -1,0 +1,55 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AnalysisTemplate
+metadata:
+  name: fare-model-canary
+  namespace: fareops
+spec:
+  args:
+    - name: canary-hash
+    - name: stable-hash
+  metrics:
+    - name: mae-ratio-canary-vs-stable
+      interval: 30s
+      count: 4
+      failureLimit: 1
+      successCondition: result[0] < 1.25
+      provider:
+        prometheus:
+          address: http://prometheus.monitoring.svc.cluster.local:9090
+          query: |
+            (
+              (
+                (sum(rate(fare_api_abs_error_usd_sum{pod_template_hash="{{args.canary-hash}}"}[2m]))
+                 / sum(rate(fare_api_abs_error_usd_count{pod_template_hash="{{args.canary-hash}}"}[2m])))
+                /
+                (sum(rate(fare_api_abs_error_usd_sum{pod_template_hash="{{args.stable-hash}}"}[2m]))
+                 / sum(rate(fare_api_abs_error_usd_count{pod_template_hash="{{args.stable-hash}}"}[2m])))
+              ) >= 0
+            ) or vector(1)
+    - name: p95-latency-seconds
+      interval: 30s
+      count: 4
+      failureLimit: 1
+      successCondition: result[0] < 0.25
+      provider:
+        prometheus:
+          address: http://prometheus.monitoring.svc.cluster.local:9090
+          query: |
+            (histogram_quantile(0.95, sum by (le) (rate(
+              fare_api_request_latency_seconds_bucket{pod_template_hash="{{args.canary-hash}}"}[2m]))) >= 0)
+            or vector(0)
+    - name: error-ratio
+      interval: 30s
+      count: 4
+      failureLimit: 1
+      successCondition: result[0] < 0.02
+      provider:
+        prometheus:
+          address: http://prometheus.monitoring.svc.cluster.local:9090
+          query: |
+            (
+              (
+                (sum(rate(fare_api_requests_total{pod_template_hash="{{args.canary-hash}}",status=~"5.."}[2m])) or vector(0))
+                / sum(rate(fare_api_requests_total{pod_template_hash="{{args.canary-hash}}"}[2m]))
+              ) >= 0
+            ) or vector(0)

@@ -1,3 +1,7 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-resources: []
+resources:
+  - storage.yaml
+  - mlflow.yaml
+  - loop-controller.yaml
+  - fare-api

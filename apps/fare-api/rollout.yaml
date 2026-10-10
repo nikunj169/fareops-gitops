@@ -1,0 +1,68 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: fare-api
+  namespace: fareops
+spec:
+  replicas: 3
+  revisionHistoryLimit: 3
+  selector:
+    matchLabels: {app: fare-api}
+  template:
+    metadata:
+      labels: {app: fare-api}
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8000"
+    spec:
+      securityContext: {runAsNonRoot: true, runAsUser: 10001}
+      containers:
+        - name: fare-api
+          image: ghcr.io/nikunj169/fareops-fare-api:2fff66a # fareops:fare-api-image
+          ports:
+            - {containerPort: 8000, name: http}
+          env:
+            - name: MODEL_VERSION
+              value: "1" # fareops:model-version
+            - name: MLFLOW_TRACKING_URI
+              value: http://mlflow.fareops.svc.cluster.local:5000
+            - name: DATA_DIR
+              value: /mnt/fareops-data
+            - name: POD_NAME
+              valueFrom:
+                fieldRef: {fieldPath: metadata.name}
+          readinessProbe:
+            httpGet: {path: /ready, port: 8000}
+            periodSeconds: 5
+          livenessProbe:
+            httpGet: {path: /health, port: 8000}
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          resources:
+            requests: {cpu: 100m, memory: 160Mi}
+            limits: {cpu: 500m, memory: 384Mi}
+          volumeMounts:
+            - {name: data, mountPath: /mnt/fareops-data}
+      volumes:
+        - name: data
+          persistentVolumeClaim: {claimName: fareops-data}
+  strategy:
+    canary:
+      maxSurge: 1
+      maxUnavailable: 0
+      steps:
+        - setWeight: 33
+        - pause: {duration: 90s}
+        - analysis:
+            templates:
+              - templateName: fare-model-canary
+            args:
+              - name: canary-hash
+                valueFrom:
+                  podTemplateHashValue: Latest
+              - name: stable-hash
+                valueFrom:
+                  podTemplateHashValue: Stable
+        - setWeight: 66
+        - pause: {duration: 30s}
+        - setWeight: 100
