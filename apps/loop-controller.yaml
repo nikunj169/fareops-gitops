@@ -51,12 +51,12 @@ spec:
       securityContext: {runAsNonRoot: true, runAsUser: 10001}
       containers:
         - name: loop-controller
-          image: ghcr.io/nikunj169/fareops-loop-controller:2fff66a # fareops:loop-controller-image
+          image: ghcr.io/nikunj169/fareops-loop-controller:0b0e520 # fareops:loop-controller-image
           ports:
             - containerPort: 8000
           env:
             - name: TRAINER_IMAGE
-              value: ghcr.io/nikunj169/fareops-trainer:2fff66a # fareops:trainer-image
+              value: ghcr.io/nikunj169/fareops-trainer:0b0e520 # fareops:trainer-image
             - {name: NAMESPACE, value: fareops}
             - {name: MLFLOW_TRACKING_URI, value: "http://mlflow.fareops.svc.cluster.local:5000"}
             - {name: DATA_DIR, value: /mnt/fareops-data}

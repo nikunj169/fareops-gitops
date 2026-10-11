@@ -18,7 +18,7 @@ spec:
       securityContext: {runAsNonRoot: true, runAsUser: 10001}
       containers:
         - name: fare-api
-          image: ghcr.io/nikunj169/fareops-fare-api:2fff66a # fareops:fare-api-image
+          image: ghcr.io/nikunj169/fareops-fare-api:0b0e520 # fareops:fare-api-image
           ports:
             - {containerPort: 8000, name: http}
           env:
