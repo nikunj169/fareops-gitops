@@ -23,7 +23,7 @@ spec:
             - {containerPort: 8000, name: http}
           env:
             - name: MODEL_VERSION
-              value: "2" # fareops:model-version
+              value: "1" # fareops:model-version
             - name: MLFLOW_TRACKING_URI
               value: http://mlflow.fareops.svc.cluster.local:5000
             - name: DATA_DIR
