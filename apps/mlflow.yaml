@@ -16,7 +16,7 @@ spec:
       securityContext: {runAsNonRoot: true, runAsUser: 10001, fsGroup: 10001}
       containers:
         - name: mlflow
-          image: ghcr.io/nikunj169/fareops-mlflow:7f95ef3 # fareops:mlflow-image
+          image: ghcr.io/nikunj169/fareops-mlflow:8e77c82 # fareops:mlflow-image
           args:
             - --host=0.0.0.0
             - --port=5000
